@@ -3,7 +3,7 @@ package main
 import (
 	log "github.com/Sirupsen/logrus"
 
-	// "github.com/cmoulliard/k8s-team-crd/pkg/client"
+	"github.com/cmoulliard/k8s-controller-demo/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

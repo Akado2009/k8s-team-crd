@@ -89,30 +89,34 @@
   }
   ```
 
-- Next, develop the `main.go` file which contains the instructions to :
-  - Create a K8s client
-  - Call the k8s APi to get by example the list of the `namespaces`
+- Next, develop the `main.go` file which contains the instructions to `create a K8s client`
+
+  **WARNING**: Replace the `$USER` and `$PROJECT` with their repective values
 
   ```go
   package main
   
   import (
   	log "github.com/Sirupsen/logrus"
-  
+    "github.com/$USER/$PROJECT/pkg/client"
   	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
   )
   
   func main() {
   	// Get the Kubernetes client to access the Cloud platform
   	client := client.GetKubernetesClient()
-  
-  	ns, nsError := client.CoreV1().Namespaces().List(metav1.ListOptions{})
-  	if nsError != nil {
-  		log.Fatalf("Can't list namespaces ", nsError)
-  	}
-  	for i := range ns.Items {
-  		log.Info("Namespace/project : ", ns.Items[i].Name)
-  	}
+  }  
+  ```
+
+- Call the k8s APi to get by example the list of the `namespaces`
+
+  ```go
+  ns, nsError := client.CoreV1().Namespaces().List(metav1.ListOptions{})
+  if nsError != nil {
+  	log.Fatalf("Can't list namespaces ", nsError)
+  }
+  for i := range ns.Items {
+  	log.Info("Namespace/project : ", ns.Items[i].Name)
   }
   ```
 
@@ -122,7 +126,7 @@
   dep init
   ```
 
-- Define the additional packages required by editing the `Gopkg.toml` to include them
+- Define the additional packages required by editing the `Gopkg.toml`
   ```toml
   [[constraint]]
     name = "k8s.io/client-go"
@@ -131,10 +135,6 @@
   [[constraint]]
     name = "k8s.io/apimachinery"
     version = "kubernetes-1.9.9"
-  
-  [[constraint]]
-    name = "github.com/Sirupsen/logrus"
-    version = "1.0.5"
   ```
 
 - Grab the packages.
