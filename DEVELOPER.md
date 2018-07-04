@@ -100,7 +100,7 @@ func main() {
 }
 ```
 
-- To be able execute locally this project, it is required to define the packages to be downloaded and next to import them into a local vendor directory
+- To be able to run locally `main.go`, it is required to define the packages to be installed
 - Edit the `Gopkg.toml` to include the following dependencies
 ```toml
 [[constraint]]
@@ -116,7 +116,7 @@ func main() {
   version = "1.0.5"
 ```
 
-- Grab the packages using [`dep tool`](https://github.com/golang/dep)
+- Grab the packages using [`dep tool`](https://github.com/golang/dep) to import them into the local vendor directory
 ```bash
 dep ensure
 ```
