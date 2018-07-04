@@ -131,8 +131,8 @@ func main() {
 ```
 
 - Grab the packages using [`dep tool`](https://github.com/golang/dep).
- 
-** Remark **: The packages downloaded will be stored under the local `vendor` directory
+  
+  **Remark** : The packages downloaded will be stored under the local `vendor` directory
 
 ```bash
 dep ensure
