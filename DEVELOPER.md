@@ -7,12 +7,12 @@ Pre-requisites :
 
 ## Create a project and k8s client
 
-- Move to your `$GOPATH` directory and create under `src/github.com/$GITHUBACCOUNT` a new project
+- Move to your `$GOPATH` directory and create under `src/github.com/$USER` a new project
 
 ```bash
-export GITHUBACCOUNT="cmoulliard"
-cd $GOPATH/src/github.com && mkdir -p $GITHUBACCOUNT/k8s-controller-demo
-cd $GITHUBACCOUNT/k8s-controller-demo
+export USER="cmoulliard"
+cd $GOPATH/src/github.com && mkdir -p $USER/k8s-controller-demo
+cd $USER/k8s-controller-demo
 ```
 - Move to the new project created and create the following folders's tree and files
   using the bash commands `mkdir -p {pkg/client,vendor}` and `touch {Gopkg.toml,main.go}`
