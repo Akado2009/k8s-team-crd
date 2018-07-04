@@ -98,7 +98,6 @@
   import (
   	log "github.com/Sirupsen/logrus"
   
-  	"github.com/cmoulliard/k8s-team-crd/pkg/client"
   	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
   )
   
@@ -116,7 +115,13 @@
   }
   ```
 
-- Define the additional packages required by editing the `Gopkg.toml` to include the following dependencies
+- Initialize dep tool locally
+
+  ```bash
+  dep init
+  ```
+
+- Define the additional packages required by editing the `Gopkg.toml` to include them
   ```toml
   [[constraint]]
     name = "k8s.io/client-go"
@@ -131,7 +136,7 @@
     version = "1.0.5"
   ```
 
-- Grab the packages using [`dep tool`](https://github.com/golang/dep).
+- Grab the packages.
   
   **Remark** : The packages downloaded will be stored under the local `vendor` directory
 
