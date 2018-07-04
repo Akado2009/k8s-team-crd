@@ -116,8 +116,7 @@
   }
   ```
 
-- To be able to run locally `main.go`, it is required to define the packages to be installed
-- Edit the `Gopkg.toml` to include the following dependencies
+- Define the additional packages required by editing the `Gopkg.toml` to include the following dependencies
   ```toml
   [[constraint]]
     name = "k8s.io/client-go"
@@ -139,4 +138,10 @@
   ```bash
   dep ensure
   ```
+ 
+- Run the application locally
+
+  ```bash
+  go run main.go -kubeconfig=$HOME/.kube/config
+  ```   
   
