@@ -149,7 +149,20 @@
 - Run the application locally
 
   ```bash
-  go run main.go -kubeconfig=$HOME/.kube/config
+  go run main.go -kubeconfig=$HOME/.kube/configINFO[0000] Successfully constructed k8s client          
+  
+  INFO[0000] Namespace/project : default                  
+  INFO[0000] Namespace/project : k8s-info                 
+  INFO[0000] Namespace/project : k8s-supervisord          
+  INFO[0000] Namespace/project : kube-public              
+  INFO[0000] Namespace/project : kube-system              
+  INFO[0000] Namespace/project : my-crd                   
+  INFO[0000] Namespace/project : myproject                
+  INFO[0000] Namespace/project : openshift                
+  INFO[0000] Namespace/project : openshift-infra          
+  INFO[0000] Namespace/project : openshift-node           
+  INFO[0000] Namespace/project : openshift-web-console   
+
   ```   
   
 ## Design a simple controller
@@ -532,3 +545,35 @@ TODO
     name = "github.com/hashicorp/golang-lru"
   ```  
   
+- Run the application locally and you will get infos about pods created within the `default` namespace
+
+  ```bash
+  go run main.go -kubeconfig=$HOME/.kube/config
+  
+  INFO[0000] Controller.Run: initiating                   
+  INFO[0000] Add pod: default/router-1-hmrss              
+  INFO[0000] Add pod: default/docker-registry-1-ld6rh     
+  INFO[0000] Add pod: default/persistent-volume-setup-kmkfh 
+  INFO[0000] Controller.Run: cache sync complete          
+  INFO[0000] Controller.runWorker: starting               
+  INFO[0000] Controller.processNextItem: start            
+  INFO[0000] Controller.processNextItem: object created detected: default/router-1-hmrss 
+  INFO[0000] SimpleHandler.ObjectCreated                  
+  INFO[0000]     ResourceVersion: 64850                   
+  INFO[0000]     NodeName: localhost                      
+  INFO[0000]     Phase: Running                           
+  INFO[0000] Controller.runWorker: processing next item   
+  INFO[0000] Controller.processNextItem: start            
+  INFO[0000] Controller.processNextItem: object created detected: default/docker-registry-1-ld6rh 
+  INFO[0000] SimpleHandler.ObjectCreated                  
+  INFO[0000]     ResourceVersion: 64838                   
+  INFO[0000]     NodeName: localhost                      
+  INFO[0000]     Phase: Running                           
+  INFO[0000] Controller.runWorker: processing next item   
+  INFO[0000] Controller.processNextItem: start            
+  INFO[0000] Controller.processNextItem: object created detected: default/persistent-volume-setup-kmkfh 
+  INFO[0000] SimpleHandler.ObjectCreated                  
+  INFO[0000]     ResourceVersion: 1435                    
+  INFO[0000]     NodeName: localhost                      
+  INFO[0000]     Phase: Succeeded                         
+  ```   
