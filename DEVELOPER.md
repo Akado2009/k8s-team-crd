@@ -1,4 +1,11 @@
-# Instructions to create a CRD and Controller
+# Play with a k8s controller and CustomeResourceDefinition
+
+Pre-requisites :
+
+- Go Lang : [>=1.9](https://golang.org/doc/install)
+- [GOPATH](https://golang.org/doc/code.html#Workspaces) variable defined 
+
+## Create a project and k8s client
 
 - Move to your `$GOPATH` directory and create under `src/github.com/$GITHUBACCOUNT` a new project
 
