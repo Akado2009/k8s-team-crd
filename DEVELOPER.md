@@ -485,31 +485,43 @@ TODO
   	// keep the worker loop running by returning true
   	return true
   }
-
-  
   ``` 
   
 - Now, that everything is in place, we can revisit our `main.go` file to :
+  - Register the `informer`, `workingqueue`
   - Create a `Controller` object
-  - Call the different functions to register the `informer`, `workingqueue`
   - Start the `Controller loop`
   
   ```go
+  // Register the informer, working queue and events
+  informer := util.GetPodsSharedIndexInformer(client)
+  queue := util.CreateWorkingQueue()
+  util.AddPodsEventHandler(informer, queue)
   
-  	// use a channel to synchronize the finalization for a graceful shutdown
-  	stopCh := make(chan struct{})
-  	defer close(stopCh)
+  // construct the Controller object which has all of the necessary components to
+  // handle logging, connections, informing (listing and watching), the queue,
+  // and the handler
+  controller := controller.Controller{
+  	Logger:    log.NewEntry(log.New()),
+  	Clientset: client,
+  	Informer:  informer,
+  	Queue:     queue,
+  	Handler:   handler.SimpleHandler{},
+  }
   
-  	// run the controller loop to process items
-  	go controller.Run(stopCh)
+  // use a channel to synchronize the finalization for a graceful shutdown
+  stopCh := make(chan struct{})
+  defer close(stopCh)
   
-  	// use a channel to handle OS signals to terminate and gracefully shut
-  	// down processing
-  	sigTerm := make(chan os.Signal, 1)
-  	signal.Notify(sigTerm, syscall.SIGTERM)
-  	signal.Notify(sigTerm, syscall.SIGINT)
-  	<-sigTerm
+  // run the controller loop to process items
+  go controller.Run(stopCh)
   
+  // use a channel to handle OS signals to terminate and gracefully shut
+  // down processing
+  sigTerm := make(chan os.Signal, 1)
+  signal.Notify(sigTerm, syscall.SIGTERM)
+  signal.Notify(sigTerm, syscall.SIGINT)
+  <-sigTerm  
   ```
   
 - Add new dependencies to the `Gopkgo.toml` and re-run `dep ensure`
