@@ -1,15 +1,16 @@
 # Play with a k8s controller and CustomeResourceDefinition
 
    * [Play with a k8s controller and CustomeResourceDefinition](#play-with-a-k8s-controller-and-customeresourcedefinition)
-      * [Pre-requisites](#pre-requisites)
-      * [Create a project and k8s client](#create-a-project-and-k8s-client)
+      * [Prerequisites](#prerequisites)
+      * [Create a golang project](#create-a-golang-project)
+      * [Setup a k8s client to communicate with the platform](#setup-a-k8s-client-to-communicate-with-the-platform)
 
-## Pre-requisites
+## Prerequisites
 
 - Go Lang : [>=1.9](https://golang.org/doc/install)
-- [GOPATH](https://golang.org/doc/code.html#Workspaces) variable defined 
+- [GOWORKSPACE](https://golang.org/doc/code.html#Workspaces) variable defined 
 
-## Create a project and k8s client
+## Create a golang project
 
 - Move to your `$GOPATH` directory and create under `src/github.com/$USER` a new project
 
@@ -30,6 +31,8 @@ cd $USER/k8s-controller-demo
 |       `-- kube.go
 `-- vendor
 ```
+
+## Setup a k8s client to communicate with the platform
 
 - Add a `pkg/client/kube.go` file using the command `touch pkg/client/kube.go` and develop the `GetKubernetClient` function to return a k8s go client.
   
@@ -127,7 +130,10 @@ func main() {
   version = "1.0.5"
 ```
 
-- Grab the packages using [`dep tool`](https://github.com/golang/dep) to import them into the local vendor directory
+- Grab the packages using [`dep tool`](https://github.com/golang/dep).
+ 
+** Remark **: The packages downloaded will be stored under the local `vendor` directory
+
 ```bash
 dep ensure
 ```
