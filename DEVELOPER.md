@@ -586,3 +586,100 @@
   INFO[0000]     NodeName: localhost                      
   INFO[0000]     Phase: Succeeded                         
   ```   
+  
+## Developing a CustomResourceDefinition
+
+- The first step in defining the custom resource is to figure out the following…
+  
+  The API group name — in my case I’ll use `cmoulliard.com` but this can be whatever you want
+  The version — I’ll use `v1` for this custom resource but you are welcome to use any that you like. Some common ones are `v1`, `v1beta2`, `v2alpha1`
+  Resource name — how your resource will be individually identified. For my example I’ll use the resource name `Team`
+  
+- Before we create the resource and necessary items, let’s first create the directory structure: `$ mkdir -p pkg/apis/team/v1`.  
+
+- Create the API group name const in a new file: `$ touch pkg/apis/team/register.go`
+
+  ```go
+  package team
+
+  const GroupName = "cmoulliard.com"
+  ```
+  
+- Create the type structs which defines our `Team` resource: `$ touch pkg/apis/team/v1/types.go`  
+
+  ```go
+  package v1
+  
+  import (
+  	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+  )
+  
+  // TeamSpec defines the desired state of Team
+  type TeamSpec struct {
+  	Name         string `json:"name"`
+  	Description  string `json:"description"`
+  	Size         int    `json:"size,omitempty"`
+  }
+  
+  // TeamStatus defines the observed state of Team
+  type TeamStatus struct {
+  	State   string `json:"state,omitempty"`
+  	Message string `json:"message,omitempty"`
+  }
+  
+  // +genclient
+  // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+  
+  // Team
+  // +k8s:openapi-gen=true
+  // +kubebuilder:resource:path=teams
+  type Team struct {
+  	meta_v1.TypeMeta   `json:",inline"`
+  	meta_v1.ObjectMeta `json:"metadata,omitempty"`
+  
+  	Spec   TeamSpec   `json:"spec,omitempty"`
+  	Status TeamStatus `json:"status,omitempty"`
+  }
+  ```
+
+- // +<tag_name>[=value]. These are “indicators” for the code generator (usage of the generator is explained with a walk-through below) that direct specific behavior for code generation…
+  
+  +genclient — generate a client (see below) for this package
+  +genclient:noStatus — when generating the client, there is no status stored for the package
+  +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object — generate deepcopy logic (required) implementing the runtime.Object interface (this is for both MyResource and MyResourceList)  
+  
+  
+- Create a doc source file for the package: $ `touch pkg/apis/myresource/v1/doc.go`  
+  ```go
+  // +k8s:deepcopy-gen=package
+  // +groupName=cmoulliard.com
+  
+  package v1
+  ```  
+  
+- Here we set deepcopy should be generated for all types in the package (unless otherwise turned off). And we tell the generator what the API group name is with the +groupName tag.  
+ 
+- The client requires a particular API surface area for custom types, and the package needs to include AddToScheme and Resource. These functions handle adding types to the schemes. Create the source file for this functionality in the package: `$ touch pkg/apis/team/v1/register.go` 
+  ```go
+  
+  ```
+  
+- Generate code
+
+```bash
+# ROOT_PACKAGE :: the package (relative to $GOPATH/src) that is the target for code generation
+ROOT_PACKAGE="github.com/cmoulliard/k8s-team-crd"
+# CUSTOM_RESOURCE_NAME :: the name of the custom resource that we're generating client code for
+CUSTOM_RESOURCE_NAME="team"
+# CUSTOM_RESOURCE_VERSION :: the version of the resource
+CUSTOM_RESOURCE_VERSION="v1"
+
+# retrieve the code-generator scripts and bins
+go get -u k8s.io/code-generator/...
+cd $GOPATH/src/k8s.io/code-generator
+
+# run the code-generator entrypoint script
+./generate-groups.sh all "$ROOT_PACKAGE/pkg/client" "$ROOT_PACKAGE/pkg/apis" "$CUSTOM_RESOURCE_NAME:$CUSTOM_RESOURCE_VERSION"
+
+```  
+  
