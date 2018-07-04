@@ -20,7 +20,7 @@
   cd $USER/k8s-controller-demo
   ```
   
-- Move to the new project created and create the following folders's tree and files
+- Move to the new project and create the following folders's tree and files
   using the bash commands `mkdir -p {pkg/client,vendor}` and `touch {Gopkg.toml,main.go}`
 
   ```bash
@@ -37,7 +37,8 @@
 
 - Add a `pkg/client/kube.go` file using the command `touch pkg/client/kube.go` and develop the `GetKubernetClient` function to return a k8s go client.
   
-  You can pass as parameter the location of the `$HOME/.kube/config` file which contains the default context to be used to access the k8s platform
+  **Remark**: We will pass as command's line parameter the path to access the file the `$HOME/.kube/config`. It contains the `default context` to be used to access the k8s platform.
+  If the parameter is not passed on the command, then it will be calculated from the `home` directory.
 
   ```go
   package client
