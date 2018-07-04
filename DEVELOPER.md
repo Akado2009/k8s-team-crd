@@ -121,12 +121,6 @@
   }
   ```
 
-- Initialize dep tool locally
-
-  ```bash
-  dep init
-  ```
-
 - Define the additional packages required by editing the `Gopkg.toml`
   ```toml
   [[constraint]]
@@ -149,8 +143,9 @@
 - Run the application locally
 
   ```bash
-  go run main.go -kubeconfig=$HOME/.kube/configINFO[0000] Successfully constructed k8s client          
+  go run main.go -kubeconfig=$HOME/.kube/config
   
+  INFO[0000] Successfully constructed k8s client          
   INFO[0000] Namespace/project : default                  
   INFO[0000] Namespace/project : k8s-info                 
   INFO[0000] Namespace/project : k8s-supervisord          
@@ -165,9 +160,7 @@
 
   ```   
   
-## Design a simple controller
-
-TODO
+## Design a simple controller watching pods
 
 - Create a `proxy.go` file under the folder `pkg/util` where we will create the 
   different objects such as the `informer`, the `event handler` and the `queue`
