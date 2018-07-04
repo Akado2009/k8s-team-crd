@@ -4,6 +4,7 @@
       * [Prerequisites](#prerequisites)
       * [Create a golang project](#create-a-golang-project)
       * [Setup a k8s client to communicate with the platform](#setup-a-k8s-client-to-communicate-with-the-platform)
+      * [Design a simple controler](#design-a-simple-controler)
 
 ## Prerequisites
 
