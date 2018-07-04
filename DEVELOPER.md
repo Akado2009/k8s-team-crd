@@ -4,7 +4,7 @@
       * [Prerequisites](#prerequisites)
       * [Create a golang project](#create-a-golang-project)
       * [Setup a k8s client to communicate with the platform](#setup-a-k8s-client-to-communicate-with-the-platform)
-      * [Design a simple controler](#design-a-simple-controler)
+      * [Design a simple controller watching pods](#design-a-simple-controller-watching-pods)
 
 ## Prerequisites
 
@@ -169,7 +169,7 @@
    mkdir -p pkg/util && touch pkg/util/proxy.go
    ```
    
-- Define a functuion to return a `cache.NewSharedIndexInformer` to watch or list the `pods` published within thenamespace `default`
+- Define a function to return `cache.NewSharedIndexInformer` to watch or list the `pods` published within the `default` namespace
   ```go
   package util
   
@@ -182,7 +182,7 @@
   	"k8s.io/client-go/tools/cache"
   )
   
-  func GetPodsSharedIndexInformer(client kubernetes.Interface) cache.NewSharedIndexInformer {
+  func GetPodsSharedIndexInformer(client kubernetes.Interface) cache.SharedIndexInformer {
   	return cache.NewSharedIndexInformer(
   		// the ListWatch contains two different functions that our
   		// informer requires: ListFunc to take care of listing and watching
@@ -218,7 +218,10 @@
     
 - Add an `eventHandler` to manage the pods's resources
   ```go
-  func (inf *cache.SharedIndexInformer) AddPodsEventHandler() {
+  import (  
+	log "github.com/Sirupsen/logrus"
+  )
+  func AddPodsEventHandler(inf cache.SharedInformer, queue workqueue.RateLimitingInterface) {
   	// add event handlers to handle the three types of events for resources:
   	//  - adding new resources
   	//  - updating existing resources
@@ -231,14 +234,14 @@
   			log.Infof("Add pod: %s", key)
   			if err == nil {
   				// add the key to the queue for the handler to get
-  				workqueue.queue.Add(key)
+  				queue.Add(key)
   			}
   		},
   		UpdateFunc: func(oldObj, newObj interface{}) {
   			key, err := cache.MetaNamespaceKeyFunc(newObj)
   			log.Infof("Update pod: %s", key)
   			if err == nil {
-  				workqueue.queue.Add(key)
+  				queue.Add(key)
   			}
   		},
   		DeleteFunc: func(obj interface{}) {
@@ -257,7 +260,7 @@
   }
   ```
  
-- Create the `Simple.go` file within the folder `pkg/controller/` 
+- Create the `Simple.go` controller within the folder `pkg/controller/` 
    ```bash
    mkdir -p pkg/controller && touch pkg/controller/simple.go
    ```
@@ -283,17 +286,17 @@
    
    // Controller struct defines how a controller should encapsulate
    // logging, client connectivity, informing (list and watching)
-   // queueing, and handling of resource changes
+   // Queueing, and handling of resource changes
    type Controller struct {
-   	logger    *log.Entry
-   	clientset kubernetes.Interface
-   	queue     workqueue.RateLimitingInterface
-   	informer  cache.SharedIndexInformer
-	handler   handler.SimpleHandler
+   	Logger    *log.Entry
+   	Clientset kubernetes.Interface
+   	Queue     workqueue.RateLimitingInterface
+   	Informer  cache.SharedIndexInformer
+   	Handler   handler.SimpleHandler
    }
    ```
  
-- Create the Handler `Simple.go` file within the folder `pkg/handler/` 
+- Create the `Simple.go` Handler file within the folder `pkg/handler/` 
   ```bash
   mkdir -p pkg/handler && touch pkg/handler/simple.go
   ```  
@@ -339,6 +342,7 @@
   import (  
       core_v1 "k8s.io/api/core/v1"
   )
+  ...
   // Init handles any handler initialization
   func (t *SimpleHandler) Init() error {
   	log.Info("SimpleHandler.Init")
@@ -388,21 +392,21 @@
   func (c *Controller) Run(stopCh <-chan struct{}) {
   	// handle a panic with logging and exiting
   	defer utilruntime.HandleCrash()
-  	// ignore new items in the queue but when all goroutines
+  	// ignore new items in the Queue but when all goroutines
   	// have completed existing items then shutdown
-  	defer c.queue.ShutDown()
+  	defer c.Queue.ShutDown()
   
-  	c.logger.Info("Controller.Run: initiating")
+  	c.Logger.Info("Controller.Run: initiating")
   
   	// run the informer to start listing and watching resources
-  	go c.informer.Run(stopCh)
+  	go c.Informer.Run(stopCh)
   
   	// do the initial synchronization (one time) to populate resources
   	if !cache.WaitForCacheSync(stopCh, c.HasSynced) {
   		utilruntime.HandleError(fmt.Errorf("Error syncing cache"))
   		return
   	}
-  	c.logger.Info("Controller.Run: cache sync complete")
+  	c.Logger.Info("Controller.Run: cache sync complete")
   
   	// run the runWorker method every second with a stop channel
   	wait.Until(c.runWorker, time.Second, stopCh)
@@ -411,10 +415,10 @@
   // HasSynced allows us to satisfy the Controller interface
   // by wiring up the informer's HasSynced method to it
   func (c *Controller) HasSynced() bool {
-  	return c.informer.HasSynced()
+  	return c.Informer.HasSynced()
   }
   
-  // runWorker executes the loop to process new items added to the queue
+  // runWorker executes the loop to process new items added to the Queue
   func (c *Controller) runWorker() {
   	log.Info("Controller.runWorker: starting")
   
@@ -427,25 +431,25 @@
   	log.Info("Controller.runWorker: completed")
   }
   
-  // processNextItem retrieves each queued item and takes the
+  // processNextItem retrieves each Queued item and takes the
   // necessary handler action based off of if the item was
   // created or deleted
   func (c *Controller) processNextItem() bool {
   	log.Info("Controller.processNextItem: start")
   
-  	// fetch the next item (blocking) from the queue to process or
+  	// fetch the next item (blocking) from the Queue to process or
   	// if a shutdown is requested then return out of this to stop
   	// processing
-  	key, quit := c.queue.Get()
+  	key, quit := c.Queue.Get()
   
   	// stop the worker loop from running as this indicates we
-  	// have sent a shutdown message that the queue has indicated
+  	// have sent a shutdown message that the Queue has indicated
   	// from the Get method
   	if quit {
   		return false
   	}
   
-  	defer c.queue.Done(key)
+  	defer c.Queue.Done(key)
   
   	// assert the string out of the key (format `namespace/name`)
   	keyRaw := key.(string)
@@ -457,17 +461,17 @@
   	// resource was created (true) or deleted (false)
   	//
   	// if there is an error in getting the key from the index
-  	// then we want to retry this particular queue key a certain
-  	// number of times (5 here) before we forget the queue key
+  	// then we want to retry this particular Queue key a certain
+  	// number of times (5 here) before we forget the Queue key
   	// and throw an error
-  	item, exists, err := c.informer.GetIndexer().GetByKey(keyRaw)
+  	item, exists, err := c.Informer.GetIndexer().GetByKey(keyRaw)
   	if err != nil {
-  		if c.queue.NumRequeues(key) < 5 {
-  			c.logger.Errorf("Controller.processNextItem: Failed processing item with key %s with error %v, retrying", key, err)
-  			c.queue.AddRateLimited(key)
+  		if c.Queue.NumRequeues(key) < 5 {
+  			c.Logger.Errorf("Controller.processNextItem: Failed processing item with key %s with error %v, retrying", key, err)
+  			c.Queue.AddRateLimited(key)
   		} else {
-  			c.logger.Errorf("Controller.processNextItem: Failed processing item with key %s with error %v, no more retries", key, err)
-  			c.queue.Forget(key)
+  			c.Logger.Errorf("Controller.processNextItem: Failed processing item with key %s with error %v, no more retries", key, err)
+  			c.Queue.Forget(key)
   			utilruntime.HandleError(err)
   		}
   	}
@@ -476,16 +480,16 @@
   	// ObjectDeleted method. but if the object does exist that indicates that the object
   	// was created (or updated) so run the ObjectCreated method
   	//
-  	// after both instances, we want to forget the key from the queue, as this indicates
-  	// a code path of successful queue key processing
+  	// after both instances, we want to forget the key from the Queue, as this indicates
+  	// a code path of successful Queue key processing
   	if !exists {
-  		c.logger.Infof("Controller.processNextItem: object deleted detected: %s", keyRaw)
-  		c.handler.ObjectDeleted(item)
-  		c.queue.Forget(key)
+  		c.Logger.Infof("Controller.processNextItem: object deleted detected: %s", keyRaw)
+  		c.Handler.ObjectDeleted(item)
+  		c.Queue.Forget(key)
   	} else {
-  		c.logger.Infof("Controller.processNextItem: object created detected: %s", keyRaw)
-  		c.handler.ObjectCreated(item)
-  		c.queue.Forget(key)
+  		c.Logger.Infof("Controller.processNextItem: object created detected: %s", keyRaw)
+  		c.Handler.ObjectCreated(item)
+  		c.Queue.Forget(key)
   	}
   
   	// keep the worker loop running by returning true
@@ -499,6 +503,18 @@
   - Start the `Controller loop`
   
   ```go
+  import (
+  	log "github.com/Sirupsen/logrus"
+  
+  	"github.com/cmoulliard/k8s-controller-demo/pkg/client"
+  	"github.com/cmoulliard/k8s-controller-demo/pkg/controller"
+  	"github.com/cmoulliard/k8s-controller-demo/pkg/handler"
+  	"github.com/cmoulliard/k8s-controller-demo/pkg/util"
+  	"os"
+  	"os/signal"
+  	"syscall"
+  )
+  ...
   // Register the informer, working queue and events
   informer := util.GetPodsSharedIndexInformer(client)
   queue := util.CreateWorkingQueue()
