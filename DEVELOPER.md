@@ -1,10 +1,10 @@
 # Play with a k8s controller and CustomeResourceDefinition
 
    * [Play with a k8s controller and CustomeResourceDefinition](#play-with-a-k8s-controller-and-customeresourcedefinition)
-      * [Pre-requisites :](#pre-requisites-)
+      * [Pre-requisites](#pre-requisites)
       * [Create a project and k8s client](#create-a-project-and-k8s-client)
 
-## Pre-requisites :
+## Pre-requisites
 
 - Go Lang : [>=1.9](https://golang.org/doc/install)
 - [GOPATH](https://golang.org/doc/code.html#Workspaces) variable defined 
