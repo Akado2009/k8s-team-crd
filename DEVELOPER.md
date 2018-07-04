@@ -8,6 +8,7 @@
 ## Prerequisites
 
 - Go Lang : [>=1.9](https://golang.org/doc/install)
+- [Dep tool](https://github.com/golang/dep)
 - [GOWORKSPACE](https://golang.org/doc/code.html#Workspaces) variable defined 
 
 ## Create a golang project
