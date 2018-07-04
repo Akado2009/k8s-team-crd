@@ -151,3 +151,73 @@
   go run main.go -kubeconfig=$HOME/.kube/config
   ```   
   
+## Design a simple controler
+
+TODO
+
+- Create the `Simple.go` file within the folder `pkg/controller/` 
+   ```bash
+   mkdir -p pkg/controller && touch pkg/controller/simple.go
+   ```
+- Specify the type's definition of the `Controller` struct with a
+  - `log.Entry`
+  - `kubernetes.Interface` containing the API types
+  - `workqueue.RateLimitingInterface` where events are published
+  - `cache.SharedIndexInformer` listening to the K8s APi `list` or `watch` 
+  - `Handler` managing the logic of this simple controller
+
+   ```go
+   package controller
+   
+   import (
+   	log "github.com/Sirupsen/logrus"
+   	"k8s.io/client-go/kubernetes"
+   	"k8s.io/client-go/tools/cache"
+   	"k8s.io/client-go/util/workqueue"
+   )
+   
+   // Controller struct defines how a controller should encapsulate
+   // logging, client connectivity, informing (list and watching)
+   // queueing, and handling of resource changes
+   type Controller struct {
+   	logger    *log.Entry
+   	clientset kubernetes.Interface
+   	queue     workqueue.RateLimitingInterface
+   	informer  cache.SharedIndexInformer
+   	handler   Handler
+   }
+   ```
+ 
+- Create the Handler `Simple.go` file within the folder `pkg/handler/` 
+  ```bash
+  mkdir -p pkg/handler && touch pkg/handler/simple.go
+  ```  
+  
+- Define the methods that we will use to handle the operations : `Create`,`Delete`,`Update`
+
+  ```go
+  package handler
+
+  // Handler interface contains the methods that are required
+  type Handler interface {
+  	Init() error
+  	ObjectCreated(obj interface{})
+  	ObjectDeleted(obj interface{})
+  	ObjectUpdated(objOld, objNew interface{})
+  }
+  ```  
+  
+- Add an `init() function` which is executed during the creation of the object
+
+  ```go
+  import (
+  	log "github.com/Sirupsen/logrus"
+  )	
+  ...
+  
+  // Init handles any handler initialization
+  func (t *simpleHandler) Init() error {
+  	log.Info("TestHandler.Init")
+  	return nil
+  }
+  ```  
