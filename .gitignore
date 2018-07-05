@@ -1,0 +1,6 @@
+Gopkg.lock
+pkg/client/clientset/
+pkg/client/listers/
+pkg/client/informers/
+**/zz_generated.deepcopy.go
+vendor
