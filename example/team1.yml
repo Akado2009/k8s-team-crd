@@ -1,0 +1,11 @@
+  apiVersion: cmoulliard.com/v1
+  kind: Team
+  metadata:
+    labels:
+      project: ux
+    name: team123
+    namespace: my-crd
+  spec:
+    description: Awesome Snowdrop Team !
+    name: Spring Boot Team
+    size: 4
