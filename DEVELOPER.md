@@ -11,7 +11,7 @@
     * [Developing a CustomResourceDefinition's team](#developing-a-customresourcedefinitions-team)
     * [Develop a TeamController to play with the new resource](#develop-a-teamcontroller-to-play-with-the-new-resource)
 
-## Interesting reading
+## Interesting readings
 
 - [Blog: kubernetes crd client](https://www.martin-helmich.de/en/blog/kubernetes-crd-client.html)
 - [Blog: Create custom resource](https://medium.com/@trstringer/create-kubernetes-controllers-for-core-and-custom-resources-62fc35ad64a3)
