@@ -7,6 +7,12 @@
       * [Design a simple controller watching pods](#design-a-simple-controller-watching-pods)
       * [Developing a CustomResourceDefinition](#developing-a-customresourcedefinition)
 
+## Interesting reading
+
+- [Blog: kubernetes crd client](https://www.martin-helmich.de/en/blog/kubernetes-crd-client.html)
+- [Blog: Create custom resource](https://medium.com/@trstringer/create-kubernetes-controllers-for-core-and-custom-resources-62fc35ad64a3)
+- [Blog: Deep dive Code generation of CRD](https://blog.openshift.com/kubernetes-deep-dive-code-generation-customresources/)
+
 ## Prerequisites
 
 - Go Lang : [>=1.9](https://golang.org/doc/install)
@@ -643,14 +649,15 @@
   }
   ```
 
-- // +<tag_name>[=value]. These are “indicators” for the code generator (usage of the generator is explained with a walk-through below) that direct specific behavior for code generation…
+**Remark** : The `+<tag_name>[=value]` are `indicators` for the `code generator` tool that direct specific behavior for code generation.
   
-  +genclient — generate a client (see below) for this package
-  +genclient:noStatus — when generating the client, there is no status stored for the package
-  +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object — generate deepcopy logic (required) implementing the runtime.Object interface (this is for both MyResource and MyResourceList)  
+**Impirtant** :   
+  - `+genclient` : generate a client package containing the code able to discover with the `clientset` the new type of the API
+  - `+genclient:noStatus` : when generating the client, there is no status stored for the package
+  - `+k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object` : generate `deepcopy logic` which is required and implements the `runtime.Object` interface (this is for both Team and TeamList)  
   
-  
-- Create a doc source file for the package: $ `touch pkg/apis/myresource/v1/doc.go`  
+
+- Create a doc source file for the package: `$ touch pkg/apis/myresource/v1/doc.go` with these `tags`
   ```go
   // +k8s:deepcopy-gen=package
   // +groupName=cmoulliard.com
@@ -658,21 +665,65 @@
   package v1
   ```  
   
-- Here we set deepcopy should be generated for all types in the package (unless otherwise turned off). And we tell the generator what the API group name is with the +groupName tag.  
+**Important** : Global tags are written into the `doc.go` file.   
+**Remark**: 
+  - `+k8s:deepcopy-gen=package` tag tells to create `deepcopy` methods by default for every type in that package.
+  - `+groupName=cmoulliard.com` tag defines the `fully qualified API` group name.  
  
-- The client requires a particular API surface area for custom types, and the package needs to include AddToScheme and Resource. These functions handle adding types to the schemes. Create the source file for this functionality in the package: `$ touch pkg/apis/team/v1/register.go` 
-  ```go
+- The client requires a particular API surface area for custom types, and the package needs to include `AddToScheme and Resource`.
+  These functions handle adding `types` to the `schemes`. Create the source file for this functionality in the package: `$ touch pkg/apis/team/v1/register.go` 
+  and register the new Types to the Scheme as described hereafter
   
+  ```go
+  package v1
+  
+  import (
+  	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+  	"k8s.io/apimachinery/pkg/runtime"
+  	"k8s.io/apimachinery/pkg/runtime/schema"
+  
+  	team "github.com/cmoulliard/k8s-team-crd/pkg/apis/team"
+  )
+  
+  // GroupVersion is the identifier for the API which includes
+  // the name of the group and the version of the API
+  var SchemeGroupVersion = schema.GroupVersion{
+  	Group:   team.GroupName,
+  	Version: "v1",
+  }
+  
+  // create a SchemeBuilder which uses functions to add types to
+  // the scheme
+  var (
+       SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
+       AddToScheme   = SchemeBuilder.AddToScheme
+  )
+  
+  func Resource(resource string) schema.GroupResource {
+  	return SchemeGroupVersion.WithResource(resource).GroupResource()
+  }
+  
+  // addKnownTypes adds our types to the API scheme by registering
+  // Team and TeamList
+  func addKnownTypes(scheme *runtime.Scheme) error {
+  	scheme.AddKnownTypes(
+  		SchemeGroupVersion,
+  		&Team{},
+  		&TeamList{},
+  	)
+  
+  	// register the type in the scheme
+  	meta_v1.AddToGroupVersion(scheme, SchemeGroupVersion)
+  	return nil
+  }
   ```
   
 - Generate code
 
 ```bash
-# ROOT_PACKAGE :: the package (relative to $GOPATH/src) that is the target for code generation
+CURRENT=$(pwd)
 ROOT_PACKAGE="github.com/cmoulliard/k8s-team-crd"
-# CUSTOM_RESOURCE_NAME :: the name of the custom resource that we're generating client code for
 CUSTOM_RESOURCE_NAME="team"
-# CUSTOM_RESOURCE_VERSION :: the version of the resource
 CUSTOM_RESOURCE_VERSION="v1"
 
 # retrieve the code-generator scripts and bins
@@ -681,6 +732,193 @@ cd $GOPATH/src/k8s.io/code-generator
 
 # run the code-generator entrypoint script
 ./generate-groups.sh all "$ROOT_PACKAGE/pkg/client" "$ROOT_PACKAGE/pkg/apis" "$CUSTOM_RESOURCE_NAME:$CUSTOM_RESOURCE_VERSION"
-
+Generating deepcopy funcs
+Generating clientset for team:v1 at github.com/cmoulliard/k8s-team-crd/pkg/client/clientset
+Generating listers for team:v1 at github.com/cmoulliard/k8s-team-crd/pkg/client/listers
+Generating informers for team:v1 at github.com/cmoulliard/k8s-team-crd/pkg/client/informers
+cd $CURRENT
 ```  
+
+- Enhance `pkg/client/kube.go` to define a new function `GetKubernetesCRDClient` which will return the `clientset` able to deal with  our type and extending the k8s API
+
+  ```go
+  ...
+	teamclientset "github.com/cmoulliard/k8s-team-crd/pkg/client/clientset/versioned"
+   )
+   
+   // Retrieve the Kubernetes cluster client from outside of the cluster and add the Team Clienset
+   func GetKubernetesCRDClient() (kubernetes.Interface, teamclientset.Interface) {
+   	// Generate the client based off of the config
+   	client := GetKubernetesClient()
+   
+   	// Create a Team ClientSet
+   	clientset, err := teamclientset.NewForConfig(config)
+   	if err != nil {
+   		log.Fatalf("Team clienset: %v", err)
+   	}
+   
+   	log.Info("Successfully constructed k8s client")
+   	return client, clientset
+   }
+  ```
+
+- Add a new function `GetTeamsSharedIndexInformer` using `pkg/util/proxy.go` to return an `Informer` using our `team` type 
+
+  ```go
+  package util
+  
+  import (
+  	log "github.com/Sirupsen/logrus"
+  	api_v1 "k8s.io/api/core/v1"
+  	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+  	"k8s.io/apimachinery/pkg/runtime"
+  	"k8s.io/apimachinery/pkg/watch"
+  	"k8s.io/client-go/kubernetes"
+  	"k8s.io/client-go/tools/cache"
+  	"k8s.io/client-go/util/workqueue"
+  
+  	teamclientset "github.com/cmoulliard/k8s-team-crd/pkg/client/clientset/versioned"
+  	teaminformer_v1 "github.com/cmoulliard/k8s-team-crd/pkg/client/informers/externalversions/team/v1"
+  )
+  
+  
+  func GetTeamsSharedIndexInformer(client kubernetes.Interface, teamclient teamclientset.Interface ) cache.SharedIndexInformer {
+  	return teaminformer_v1.NewTeamInformer(
+  		teamclient,
+  		meta_v1.NamespaceAll,
+  		0,
+  		cache.Indexers{},
+  	)
+  }
+  ...
+  ```
+  
+- Revisit the `handle.go` in order to process our `team` resource instead of the `pod`. Duplicate the `pkg/handler/simple.go` file and rename it `team.go`. (`$ cp pkg/handler/simple.go pkg/handler/team.go`)
+- Rename all the occurrences of `SimpleHandler` to `TeamHandler`
+- Rename the Handler Interface to `type HandlerInterface interface {` 
+- Modify the function `func (t *TeamHandler) ObjectCreated(obj interface{}) {` to log the information of our team type`
+  ```go
+  import (
+  	log "github.com/Sirupsen/logrus"
+  	team_v1 "github.com/$USER/$PROJECT/pkg/apis/team/v1"
+  )
+  func (t *TeamHandler) ObjectCreated(obj interface{}) {
+  	log.Info("TeamHandler.ObjectCreated")
+  
+  	team := obj.(*team_v1.Team)
+  	log.Infof("    ResourceVersion: %s", team.ObjectMeta.ResourceVersion)
+  	log.Infof("    Team name: %s", team.Spec.Name)
+  	log.Infof("    Team description: %s", team.Spec.Description)
+  	log.Infof("    Team size: %s", team.Spec.Size)
+  }
+  ```
+
+- Create a new controller able to handle the events for our team's resource. Duplicate the `pkg/controller/simple.go` file and rename it `team.go`. (`$ cp pkg/controller/simple.go pkg/controller/team.go`)
+- Rename `Controller` to `TeamController`. See snippet example hereafter
+  ```go
+  ...
+  type TeamController struct {
+  	Logger    *log.Entry
+  	Clientset kubernetes.Interface
+  	Queue     workqueue.RateLimitingInterface
+  	Informer  cache.SharedIndexInformer
+  	Handler   handler.TeamHandler
+  }
+  
+  // Run is the main path of execution for the controller loop
+  func (c *TeamController) Run(stopCh <-chan struct{}) {
+  ...
+  ```
+- Adapt the `Controller` struct to use our team handler
+  ```go
+  type Controller struct {
+  	Logger    *log.Entry
+  	Clientset kubernetes.Interface
+  	Queue     workqueue.RateLimitingInterface
+  	Informer  cache.SharedIndexInformer
+  	Handler   handler.TeamHandler
+  }
+  ```
+
+- Duplicate the `main2.go` file and rename it `main3.go`. (`$ cp main2.go main3.go`)
+- Modify the functions to use our Team's `clientset` and `informer`
+  ```go
+  func main() {
+  	// Get the Kubernetes client to access the Cloud platform
+  	client := client.GetKubernetesClient()
+  
+  	informer := util.GetPodsSharedIndexInformer(client)
+  ```
+  
+- Update the controller to use the `TeamController`
+  ```go
+  import (
+  	controllers "github.com/cmoulliard/k8s-team-crd/pkg/controller"
+  )
+  ...
+  controller := controllers.TeamController{
+  	Logger:    log.NewEntry(log.New()),
+  	Clientset: client,
+  	Informer:  teaminformer,
+  	Queue:     queue,
+  	Handler:   handler.TeamHandler{},
+  }
+  ```  
+  
+- Create a `customresourcedefinition` yaml resource file within the folder `$ mkdir -p example`. The name of the file is team-crd.yml (`$ touch example/team-crd.yml`)
+
+  ```yaml
+  apiVersion: apiextensions.k8s.io/v1beta1
+  kind: CustomResourceDefinition
+  metadata:
+    name: teams.cmoulliard.com
+  spec:
+    group: cmoulliard.com
+    version: v1
+    names:
+      kind: Team
+      listKind: TeamList
+      plural: teams
+      shortNames:
+      - team
+      singular: team
+    version: v1
+  ```
+
+- Install it on k8s / OpenShift
+
+  ```bash
+  oc create -f example/team-crd.yml
+  customresourcedefinition "teams.cmoulliard.com" created
+  ```   
+  
+- Create a `team` resource yaml file (`$ touch example/team1.yml`) with these informations
+
+  ```yaml
+  apiVersion: cmoulliard.com/v1
+  kind: Team
+  metadata:
+    labels:
+      project: ux
+    name: team123
+    namespace: my-crd
+  spec:
+    description: Awesome Snowdrop Team !
+    name: Spring Boot Team
+    size: 4
+  ```
+
+- Create a new `Team` resource on k8s / OpenShift
+
+  ```bash
+  oc create -f example/team1.yml
+  team "team123" created
+  ```
+  
+- Run the new application consuming this CRD type
+
+  ```bash
+  go run main3.go
+  ```  
+
   
