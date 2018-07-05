@@ -12,7 +12,7 @@
 
 ## Interesting readings
 
-- [Doc: Extend Kubenetes](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/)
+- [Doc: Extend Kubernetes](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/)
 - [Doc: Extending the Kubernetes API with custom resources](https://docs.openshift.com/container-platform/3.9/admin_guide/custom_resource_definitions.html)
 - [Blog: kubernetes crd client](https://www.martin-helmich.de/en/blog/kubernetes-crd-client.html)
 - [Blog: Create custom resource](https://medium.com/@trstringer/create-kubernetes-controllers-for-core-and-custom-resources-62fc35ad64a3)
@@ -30,8 +30,9 @@
 
   ```bash
   export USER="cmoulliard"
-  cd $GOPATH/src/github.com && mkdir -p $USER/k8s-controller-demo
-  cd $USER/k8s-controller-demo
+  export PROJECT="k8s-controller-crd"
+  cd $GOPATH/src/github.com && mkdir -p $USER/$PROJECT
+  cd $USER/$PROJECT
   ```
   
 - Move to the new project and create the following folders's tree and files
@@ -520,10 +521,10 @@
   import (
   	log "github.com/Sirupsen/logrus"
   
-  	"github.com/cmoulliard/k8s-team-crd/pkg/client"
-  	controllers "github.com/cmoulliard/k8s-team-crd/pkg/controller"
-  	"github.com/cmoulliard/k8s-team-crd/pkg/handler"
-  	"github.com/cmoulliard/k8s-team-crd/pkg/util"
+  	"github.com/cmoulliard/$PROJECT/pkg/client"
+  	controllers "github.com/cmoulliard/$PROJECT/pkg/controller"
+  	"github.com/cmoulliard/$PROJECT/pkg/handler"
+  	"github.com/cmoulliard/$PROJECT/pkg/util"
   
   	"os"
   	"os/signal"
@@ -690,7 +691,7 @@
   	"k8s.io/apimachinery/pkg/runtime"
   	"k8s.io/apimachinery/pkg/runtime/schema"
   
-  	team "github.com/cmoulliard/k8s-team-crd/pkg/apis/team"
+  	team "github.com/cmoulliard/$PROJECT/pkg/apis/team"
   )
   
   // GroupVersion is the identifier for the API which includes
@@ -732,7 +733,7 @@
 
 ```bash
 CURRENT=$(pwd)
-ROOT_PACKAGE="github.com/cmoulliard/k8s-team-crd"
+ROOT_PACKAGE="github.com/cmoulliard/$PROJECT"
 CUSTOM_RESOURCE_NAME="team"
 CUSTOM_RESOURCE_VERSION="v1"
 
@@ -756,7 +757,7 @@ cd $CURRENT
 
   ```go
   ...
-	teamclientset "github.com/cmoulliard/k8s-team-crd/pkg/client/clientset/versioned"
+	teamclientset "github.com/$USER/$PROJECT/pkg/client/clientset/versioned"
    )
    
    // Retrieve the Kubernetes cluster client from outside of the cluster and add the Team Clienset
@@ -790,8 +791,8 @@ cd $CURRENT
   	"k8s.io/client-go/tools/cache"
   	"k8s.io/client-go/util/workqueue"
   
-  	teamclientset "github.com/cmoulliard/k8s-team-crd/pkg/client/clientset/versioned"
-  	teaminformer_v1 "github.com/cmoulliard/k8s-team-crd/pkg/client/informers/externalversions/team/v1"
+  	teamclientset "github.com/$USER/$PROJECT/pkg/client/clientset/versioned"
+  	teaminformer_v1 "github.com/$USER/$PROJECT/pkg/client/informers/externalversions/team/v1"
   )
   
   
@@ -866,7 +867,7 @@ cd $CURRENT
 - Update the controller to use the `TeamController`
   ```go
   import (
-  	controllers "github.com/cmoulliard/k8s-team-crd/pkg/controller"
+  	controllers "github.com/$USER/$PROJECT/pkg/controller"
   )
   ...
   controller := controllers.TeamController{
