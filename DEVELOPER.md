@@ -1,4 +1,4 @@
-# Play with k8s Controller and CustomResourceDefinition
+# Play with k8s Controller and extend the API with a CustomResourceDefinition
 
 ## Table of Content
 
