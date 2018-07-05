@@ -9,7 +9,20 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
+
+	teamclientset "github.com/cmoulliard/k8s-team-crd/pkg/client/clientset/versioned"
+	teaminformer_v1 "github.com/cmoulliard/k8s-team-crd/pkg/client/informers/externalversions/team/v1"
 )
+
+
+func GetTeamsSharedIndexInformer(client kubernetes.Interface, teamclient teamclientset.Interface ) cache.SharedIndexInformer {
+	return teaminformer_v1.NewTeamInformer(
+		teamclient,
+		meta_v1.NamespaceAll,
+		0,
+		cache.Indexers{},
+	)
+}
 
 func GetPodsSharedIndexInformer(client kubernetes.Interface) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
