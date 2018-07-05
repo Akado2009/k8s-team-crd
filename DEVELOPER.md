@@ -2,14 +2,13 @@
 
 ## Table of Content
 
-  * [Table of Content](#table-of-content)
-    * [Interesting reading](#interesting-reading)
-    * [Prerequisites](#prerequisites)
-    * [Create a golang project](#create-a-golang-project)
-    * [Setup a k8s client to communicate with the platform](#setup-a-k8s-client-to-communicate-with-the-platform)
-    * [Design a simple controller watching pods](#design-a-simple-controller-watching-pods)
-    * [Developing a CustomResourceDefinition's team](#developing-a-customresourcedefinitions-team)
-    * [Develop a TeamController to play with the new resource](#develop-a-teamcontroller-to-play-with-the-new-resource)
+  * [Interesting reading](#interesting-reading)
+  * [Prerequisites](#prerequisites)
+  * [Create a golang project](#create-a-golang-project)
+  * [Setup a k8s client to communicate with the platform](#setup-a-k8s-client-to-communicate-with-the-platform)
+  * [Design a simple controller watching pods](#design-a-simple-controller-watching-pods)
+  * [Developing a CustomResourceDefinition's team](#developing-a-customresourcedefinitions-team)
+  * [Develop a TeamController to play with the new resource](#develop-a-teamcontroller-to-play-with-the-new-resource)
 
 ## Interesting readings
 
