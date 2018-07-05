@@ -1,11 +1,13 @@
 # Play with a k8s controller and CustomeResourceDefinition
 
    * [Play with a k8s controller and CustomeResourceDefinition](#play-with-a-k8s-controller-and-customeresourcedefinition)
+      * [Interesting reading](#interesting-reading)
       * [Prerequisites](#prerequisites)
       * [Create a golang project](#create-a-golang-project)
       * [Setup a k8s client to communicate with the platform](#setup-a-k8s-client-to-communicate-with-the-platform)
       * [Design a simple controller watching pods](#design-a-simple-controller-watching-pods)
-      * [Developing a CustomResourceDefinition](#developing-a-customresourcedefinition)
+      * [Developing a CustomResourceDefinition's team](#developing-a-customresourcedefinitions-team)
+      * [Develop a TeamController to play with the new resource](#develop-a-teamcontroller-to-play-with-the-new-resource)
 
 ## Interesting reading
 
@@ -508,15 +510,18 @@
   - Register the `informer`, `workingqueue`
   - Create a `Controller` object
   - Start the `Controller loop`
+
+- Duplicate the `main.go` file and rename it `main.go`. (`$ cp main.go main2.go`)  
   
   ```go
   import (
   	log "github.com/Sirupsen/logrus"
   
-  	"github.com/cmoulliard/k8s-controller-demo/pkg/client"
-  	"github.com/cmoulliard/k8s-controller-demo/pkg/controller"
-  	"github.com/cmoulliard/k8s-controller-demo/pkg/handler"
-  	"github.com/cmoulliard/k8s-controller-demo/pkg/util"
+  	"github.com/cmoulliard/k8s-team-crd/pkg/client"
+  	controllers "github.com/cmoulliard/k8s-team-crd/pkg/controller"
+  	"github.com/cmoulliard/k8s-team-crd/pkg/handler"
+  	"github.com/cmoulliard/k8s-team-crd/pkg/util"
+  
   	"os"
   	"os/signal"
   	"syscall"
@@ -530,7 +535,7 @@
   // construct the Controller object which has all of the necessary components to
   // handle logging, connections, informing (listing and watching), the queue,
   // and the handler
-  controller := controller.Controller{
+  controller := controllers.Controller{
   	Logger:    log.NewEntry(log.New()),
   	Clientset: client,
   	Informer:  informer,
@@ -594,7 +599,7 @@
   INFO[0000]     Phase: Succeeded                         
   ```   
   
-## Developing a CustomResourceDefinition
+## Developing a CustomResourceDefinition's team
 
 - The first step in defining the custom resource is to figure out the following…
   
@@ -718,7 +723,9 @@
   }
   ```
   
-- Generate code
+- Generate the code using the k8s `code-generator` tool to :
+  - Create `DeepCopy` functions
+  - Create Team's `informers`, `clientset` and `listers`
 
 ```bash
 CURRENT=$(pwd)
@@ -739,6 +746,9 @@ Generating informers for team:v1 at github.com/cmoulliard/k8s-team-crd/pkg/clien
 cd $CURRENT
 ```  
 
+## Develop a TeamController to play with the new resource
+
+- In order to be able to create a new controller, we must first revisit the `kube.go` file to return the team's clientset which is is needed by the `informer`
 - Enhance `pkg/client/kube.go` to define a new function `GetKubernetesCRDClient` which will return the `clientset` able to deal with  our type and extending the k8s API
 
   ```go
@@ -762,7 +772,7 @@ cd $CURRENT
    }
   ```
 
-- Add a new function `GetTeamsSharedIndexInformer` using `pkg/util/proxy.go` to return an `Informer` using our `team` type 
+- Add a new function `GetTeamsSharedIndexInformer` within the `pkg/util/proxy.go` file to return the Team's Informer where we will scan all the `Namespaces`. 
 
   ```go
   package util
@@ -793,7 +803,7 @@ cd $CURRENT
   ...
   ```
   
-- Revisit the `handle.go` in order to process our `team` resource instead of the `pod`. Duplicate the `pkg/handler/simple.go` file and rename it `team.go`. (`$ cp pkg/handler/simple.go pkg/handler/team.go`)
+- Revisit `handle.go` in order to process our `team` resource instead of the `pod`. Duplicate the `pkg/handler/simple.go` file and rename it `team.go`. (`$ cp pkg/handler/simple.go pkg/handler/team.go`)
 - Rename all the occurrences of `SimpleHandler` to `TeamHandler`
 - Rename the Handler Interface to `type HandlerInterface interface {` 
 - Modify the function `func (t *TeamHandler) ObjectCreated(obj interface{}) {` to log the information of our team type`
