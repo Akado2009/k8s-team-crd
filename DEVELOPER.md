@@ -929,10 +929,25 @@ cd $CURRENT
   team "team123" created
   ```
   
-- Run the new application consuming this CRD type
+- Run the new application consuming this CRD type and you will see `INFO` messages about the object created !
 
   ```bash
   go run main3.go
+  INFO[0000] Successfully constructed k8s client          
+  INFO[0000] Successfully constructed k8s client          
+  INFO[0000] Controller.Run: initiating                   
+  INFO[0000] Add pod: my-crd/team123                      
+  INFO[0000] Controller.Run: cache sync complete          
+  INFO[0000] Controller.runWorker: starting               
+  INFO[0000] Controller.processNextItem: start            
+  INFO[0000] Controller.processNextItem: object created detected: my-crd/team123 
+  INFO[0000] TeamHandler.ObjectCreated                    
+  INFO[0000]     ResourceVersion: 185897                  
+  INFO[0000]     Team name: Spring Boot Team              
+  INFO[0000]     Team description: Awesome Snowdrop Team ! 
+  INFO[0000]     Team size: %!s(int=4)                    
+  INFO[0000] Controller.runWorker: processing next item   
+  INFO[0000] Controller.processNextItem: start     
   ```  
 
   
