@@ -5,7 +5,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/cmoulliard/k8s-team-crd/pkg/apis/team"
+	team "github.com/cmoulliard/k8s-team-crd/pkg/apis/team"
 )
 
 // GroupVersion is the identifier for the API which includes
@@ -17,14 +17,17 @@ var SchemeGroupVersion = schema.GroupVersion{
 
 // create a SchemeBuilder which uses functions to add types to
 // the scheme
-var AddToScheme = runtime.NewSchemeBuilder(addKnownTypes).AddToScheme
+var (
+     SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
+     AddToScheme   = SchemeBuilder.AddToScheme
+)
 
 func Resource(resource string) schema.GroupResource {
 	return SchemeGroupVersion.WithResource(resource).GroupResource()
 }
 
 // addKnownTypes adds our types to the API scheme by registering
-// MyResource and MyResourceList
+// Team and TeamList
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(
 		SchemeGroupVersion,
