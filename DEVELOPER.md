@@ -737,21 +737,20 @@
 
 ```bash
 CURRENT=$(pwd)
-ROOT_PACKAGE="github.com/cmoulliard/$PROJECT"
+ROOT_PACKAGE="github.com/$USER/$PROJECT"
 CUSTOM_RESOURCE_NAME="team"
 CUSTOM_RESOURCE_VERSION="v1"
 
 # retrieve the code-generator scripts and bins
 go get -u k8s.io/code-generator/...
-cd $GOPATH/src/k8s.io/code-generator
+CODE_GENERATOR="$GOPATH/src/k8s.io/code-generator"
 
 # run the code-generator entrypoint script
-./generate-groups.sh all "$ROOT_PACKAGE/pkg/client" "$ROOT_PACKAGE/pkg/apis" "$CUSTOM_RESOURCE_NAME:$CUSTOM_RESOURCE_VERSION"
+$CODE_GENERATOR/generate-groups.sh all "$ROOT_PACKAGE/pkg/client" "$ROOT_PACKAGE/pkg/apis" "$CUSTOM_RESOURCE_NAME:$CUSTOM_RESOURCE_VERSION"
 Generating deepcopy funcs
 Generating clientset for team:v1 at github.com/cmoulliard/k8s-team-crd/pkg/client/clientset
 Generating listers for team:v1 at github.com/cmoulliard/k8s-team-crd/pkg/client/listers
 Generating informers for team:v1 at github.com/cmoulliard/k8s-team-crd/pkg/client/informers
-cd $CURRENT
 ```  
 
 ## Develop a TeamController to play with the new resource
