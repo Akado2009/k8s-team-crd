@@ -954,19 +954,20 @@ Generating informers for team:v1 at github.com/cmoulliard/k8s-team-crd/pkg/clien
   INFO[0000] Controller.processNextItem: start     
   ```  
   
-## Use Operator SDk
+## Use Operator SDK
 
-Use Operator SDK to generate for a type, the skeleton of a go project where you will only develop the business logic to be handle for your project, the resources
+Use Operator SDK to generate for a type, the skeleton of a go project where you will just develop the `business logic` to be handled for some specific resources, the resources
 to be watched and that's all !
 
 - Get SDK Operator project and compile the `operator-sdk` client using these commands
 ```bash
+$ cd $GOPATH/src
 $ go get -u github.com/operator-framework/operator-sdk/... 
 $ make dep
 $ make install
 ```
 
-- Create an app-operator project that defines our Team's CR.
+- Create an `team-operator` project that defines the `Team`'s CR.
 
 ```bash
 $ cd $GOPATH/src/github.com/
@@ -1005,7 +1006,16 @@ $ oc create -f deploy/operator.yaml
 $ oc create -f deploy/cr.yaml
 ```
 
-- Verify that the busybox pod is created
+- Verify that a `busybox pod` is created as defined within the code of the `operator` by the handle function under `pkg/stub/Handle.go`
+
+```go
+func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
+	switch o := event.Object.(type) {
+	case *v1.Team:
+		err := sdk.Create(newbusyBoxPod(o))
+...		
+```
+ 
 ```bash
 $ oc get pod -l app=busy-box -w
 NAME            READY     STATUS    RESTARTS   AGE
