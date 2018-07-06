@@ -14,6 +14,10 @@
 
 - [Doc: Extend Kubernetes](https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/)
 - [Doc: Extending the Kubernetes API with custom resources](https://docs.openshift.com/container-platform/3.9/admin_guide/custom_resource_definitions.html)
+
+- [Tech-in-depth: informer, reflector, store](http://borismattijssen.github.io/articles/kubernetes-informers-controllers-reflectors-stores)
+- [Tech-in-depth: architecture of the components](https://medium.com/@cloudark/kubernetes-custom-controllers-b6c7d0668fdf)
+
 - [Blog: kubernetes crd client](https://www.martin-helmich.de/en/blog/kubernetes-crd-client.html)
 - [Blog: Create custom resource](https://medium.com/@trstringer/create-kubernetes-controllers-for-core-and-custom-resources-62fc35ad64a3)
 - [Blog: Deep dive Code generation of CRD](https://blog.openshift.com/kubernetes-deep-dive-code-generation-customresources/)
