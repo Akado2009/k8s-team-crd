@@ -959,6 +959,8 @@ Generating informers for team:v1 at github.com/cmoulliard/k8s-team-crd/pkg/clien
 Use Operator SDK to generate for a type, the skeleton of a go project where you will just develop the `business logic` to be handled for some specific resources, the resources
 to be watched and that's all !
 
+![Operator SDK architecture](https://cdn-images-1.medium.com/max/1600/1*f0fp4e7RhoKSzC5N7UTxSw.jpeg)
+
 - Get SDK Operator project and compile the `operator-sdk` client using these commands
 ```bash
 $ cd $GOPATH/src
@@ -1061,8 +1063,6 @@ $ quay.io/snowdrop/team-operator                     latest              bc4dc0c
 $ docker login quay.io -u $USERNAME -p $PASSWORD
 $ docker push quay.io/snowdrop/team-operator
 ```
-
-- 
 
 - Deploy the `team-operator`
 
