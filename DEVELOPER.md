@@ -1078,15 +1078,7 @@ $ oc create -f deploy/operator.yaml
 $ oc create -f deploy/cr.yaml
 ```
 
-- Verify that a `busybox pod` is created as defined within the code of the `operator` by the handle function under `pkg/stub/Handle.go`
-
-```go
-func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
-	switch o := event.Object.(type) {
-	case *v1.Team:
-		err := sdk.Create(newbusyBoxPod(o))
-...		
-```
+- Verify that a `busybox pod` is created with this command
  
 ```bash
 $ oc get pod -l app=busy-box -w
