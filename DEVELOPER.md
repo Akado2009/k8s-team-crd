@@ -9,7 +9,7 @@
   * [Design a simple controller watching pods](#design-a-simple-controller-watching-pods)
   * [Developing a CustomResourceDefinition's team](#developing-a-customresourcedefinitions-team)
   * [Develop a TeamController to play with the new resource](#develop-a-teamcontroller-to-play-with-the-new-resource)
-  * [Use Operator SDk](#use-operator-sdk)
+  * [Use Operator SDK](#use-operator-sdk)
   
 ## Interesting readings
 
