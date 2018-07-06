@@ -977,6 +977,76 @@ $ operator-sdk new team-operator --api-version=team.snowdrop.me/v1 --kind=Team
 $ cd team-operator
 ```
 
+- During the creation of the skeleton of the project, the following folders will be created :
+  - `deploy`: k8s resources to install the project
+  - `cmd` : `main.go` where SDK is configured to watch resources and initiate the logic using `Handler` 
+  - `pkg` : `apis/resource/version` definition about `types`, `doc`, `register` and `stub`'s class such as `handler`
+  - `tmp` : bash script to generate `deepcopy` functions of the type and `Dockerfile` to build the `operator` and to compile the `operator`
+  - `version` : operator version
+  - `vendor` : go packages/dependencies needed : `client-go`, `apimachinery`, `code-genarator`, ...
+  
+- The most important files are : `cmd/$PROJECT/main.go`, `pkg/apis/TYPE/VERSION/types.go` and `pkg/stub/handle.go` as they will take care about the following 
+  logic
+  
+  **Main Applicationcontrol**
+  
+  ```go
+  resource := "team.snowdrop.me/v1"
+  kind := "Team"
+  namespace, err := k8sutil.GetWatchNamespace()
+  resyncPeriod := 5
+  
+  sdk.Watch(resource, kind, namespace, resyncPeriod) // WATCH TO WATCH, OCCURENCE, NAMESPACE
+  sdk.Handle(stub.NewHandler()) // REGISTER LOGIC
+  sdk.Run(context.TODO()) // START THE CONTROLLER -> INFORMER, WORKING QUEUE and LOOP TO WAIT EVENTS
+  ```
+
+  **Type structure, fields, values**
+
+  ```go
+  package v1
+  
+  import (
+  	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+  )
+  
+  // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+  
+  type TeamList struct {
+  	metav1.TypeMeta `json:",inline"`
+  	metav1.ListMeta `json:"metadata"`
+  	Items           []Team `json:"items"`
+  }
+  
+  // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+  
+  type Team struct {
+  	metav1.TypeMeta   `json:",inline"`
+  	metav1.ObjectMeta `json:"metadata"`
+  	Spec              TeamSpec   `json:"spec"`
+  	Status            TeamStatus `json:"status,omitempty"`
+  }
+  ...
+  ```
+
+  and **Business logic to handle events**
+  
+  ```go
+  func (h *Handler) Handle(ctx context.Context, event sdk.Event) error {
+  	switch o := event.Object.(type) {
+  	case *v1.Team:  // EVENT's TYPE TO WATCH
+	 	if ! event.Deleted { // IF OBJECT HAS BEEN CREATED OR DELETED
+  		   err := sdk.Create(newbusyBoxPod(o)) // WHAT TO DO 
+  		   if err != nil && !errors.IsAlreadyExists(err) {
+  		   	logrus.Errorf("Failed to create busybox pod : %v", err)
+  		   	return err
+  		   }
+		}   
+  	}
+  	return nil
+  }
+  ```
+  
 - Build and push the `team-operator` image to a public registry such as `quay.io`
 
 **Remarks** :
@@ -992,7 +1062,9 @@ $ docker login quay.io -u $USERNAME -p $PASSWORD
 $ docker push quay.io/snowdrop/team-operator
 ```
 
-- Deploy the `team-operator
+- 
+
+- Deploy the `team-operator`
 
 ```bash
 $ oc new-project team-operator
