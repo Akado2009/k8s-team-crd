@@ -952,5 +952,71 @@ Generating informers for team:v1 at github.com/cmoulliard/k8s-team-crd/pkg/clien
   INFO[0000] Controller.runWorker: processing next item   
   INFO[0000] Controller.processNextItem: start     
   ```  
+  
+## Use Operator SDk
+
+Use Operator SDK to generate for a type, the skeleton of a go project where you will only develop the business logic to be handle for your project, the resources
+to be watched and that's all !
+
+- Get SDK Operator project and compile the `operator-sdk` client using these commands
+```bash
+$ go get -u github.com/operator-framework/operator-sdk/... 
+$ make dep
+$ make install
+```
+
+- Create an app-operator project that defines our Team's CR.
+
+```bash
+$ cd $GOPATH/src/github.com/
+$ mkdir -p snowdrop
+$ operator-sdk new team-operator --api-version=team.snowdrop.me/v1 --kind=Team
+
+$ cd team-operator
+```
+
+- Build and push the `team-operator` image to a public registry such as `quay.io`
+
+**Remarks** :
+ - Create first on `quai.io` the repository `team-operator` under your `org` and log on to `quai.io`
+ - A local docker daemon running on your desktop is needed (E.g. `$ eval $(minishift docker-env)`)
+ 
+```bash
+$ operator-sdk build quay.io/snowdrop/team-operator
+$ docker images | grep quay.io/snowdrop/team-operator
+$ quay.io/snowdrop/team-operator                     latest              bc4dc0cfc9b3        About a minute ago   39.8MB
+
+$ docker login quay.io -u $USERNAME -p $PASSWORD
+$ docker push quay.io/snowdrop/team-operator
+```
+
+- Deploy the `team-operator
+
+```bash
+$ oc new-project team-operator
+$ oc create -f deploy/rbac.yaml
+$ oc create -f deploy/crd.yaml
+$ oc create -f deploy/operator.yaml
+```
+
+- By default, creating a custom resource (Team) triggers the `team-operator` to deploy a busybox pod
+```bash
+$ oc create -f deploy/cr.yaml
+```
+
+- Verify that the busybox pod is created
+```bash
+$ oc get pod -l app=busy-box -w
+NAME            READY     STATUS    RESTARTS   AGE
+busy-box   1/1       Running   0          50s
+```
+
+- Cleanup
+```bash
+$ oc delete -f deploy/cr.yaml
+$ oc delete -f deploy/operator.yaml
+$ oc delete -f deploy/rbac.yaml
+```  
+
 
   
