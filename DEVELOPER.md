@@ -998,8 +998,8 @@ $ cd team-operator
   namespace, err := k8sutil.GetWatchNamespace()
   resyncPeriod := 5
   
-  sdk.Watch(resource, kind, namespace, resyncPeriod) // WATCH TO WATCH, OCCURENCE, NAMESPACE
-  sdk.Handle(stub.NewHandler()) // REGISTER LOGIC
+  sdk.Watch(resource, kind, namespace, resyncPeriod) // TYPE TO WATCH, OCCURENCE, NAMESPACE
+  sdk.Handle(stub.NewHandler()) // REGISTER LOGIC TO BE PERFORMED ON THE CRD = Type
   sdk.Run(context.TODO()) // START THE CONTROLLER -> INFORMER, WORKING QUEUE and LOOP TO WAIT EVENTS
   ```
 
